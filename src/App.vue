@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+// import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <!-- <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" /> -->
 
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <!-- <HelloWorld msg="You did it!" /> -->
 
       <nav>
         <RouterLink to="/">Home</RouterLink>
@@ -16,9 +16,21 @@ import HelloWorld from './components/HelloWorld.vue'
       </nav>
     </div>
   </header>
-
+  <body>
+    <createUser></createUser>
+  </body>
   <RouterView />
 </template>
+<script lang="ts">
+import CreateUser from './components/CreateUser.vue';
+
+export default{
+  name: "App",
+  components:{
+    createUser: CreateUser
+  }
+}
+</script>
 
 <style scoped>
 header {
