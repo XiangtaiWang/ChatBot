@@ -1,5 +1,5 @@
 import './assets/main.css'
-
+import 'intl-tel-input/build/css/intlTelInput.css';
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
