@@ -10,5 +10,6 @@
     },
     "noImplicitAny": false,
     "allowJs": true,
+    "forceConsistentCasingInFileNames": false
   }
 }

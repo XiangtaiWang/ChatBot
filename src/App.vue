@@ -6,7 +6,9 @@
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <!-- <RouterLink to="/about">About</RouterLink> -->
-        <RouterLink to="/Login">login</RouterLink>
+        <RouterLink to="/Login">Login</RouterLink>
+        <RouterLink to="/ChatBot">ChatBot</RouterLink>
+        <RouterLink to="/ChatbotSelector">Edit ChatBot</RouterLink>
       </nav>
     </div>
   </header>

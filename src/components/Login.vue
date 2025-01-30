@@ -41,7 +41,7 @@
 import { ref, watch } from 'vue';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { useRouter } from 'vue-router'; // Import useRouter
-import { getFirebaseAuth, getCurrentUser } from '@/firebase';
+import { getFirebaseAuth, getCurrentUserId } from '@/firebase';
 import PhoneInput from './PhoneInput.vue';
 import { createUser } from '@/firebase';
 import type { IUser } from '@/types/User';
@@ -100,7 +100,7 @@ const register = async () => {
   isLoading.value = true;
   try {
     await createUserWithEmailAndPassword(auth, email.value, password.value);
-    let uid = getCurrentUser()
+    let uid = getCurrentUserId()
     let user: IUser = {
       id: uid!,
       phone: phoneNumber.value,
