@@ -2,7 +2,7 @@ name: Deploy to Firebase Hosting
 
 on:
   push:
-    branches: [master]  # Or your main branch
+    branches: [master]
 
 jobs:
   deploy:
@@ -10,17 +10,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Install dependencies
-        run: npm install  # Or yarn install
-
+        run: npm install
       - name: Build project
-        run: npm run build  # Or yarn build
-
+        run: npm run build
       - name: Deploy to Firebase Hosting
-        uses: w9jds/firebase-action@master # Use the firebase action
+        uses: w9jds/firebase-action@v2 # Use a specific version tag, not master
         with:
-          args: deploy --only hosting # Deploy only hosting
+          args: deploy --only hosting
         env:
-          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
-          FIREBASE_PROJECT: ${{ secrets.CLIENT_PROJECTID }}
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
