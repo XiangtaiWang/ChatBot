@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Login from '../components/Login.vue';
-import ChatBot from '@/components/Chatbot.vue';
+import ChatBot from '@/components/ChatBot.vue';
 import ChatbotSelector from '@/components/ChatbotSelector.vue';
 import ChatbotEditor from "@/components/ChatbotEditor.vue";
 
