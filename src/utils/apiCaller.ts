@@ -5,7 +5,7 @@ export async function callApi(endpoint, data) {
   const ipAddress = import.meta.env.VITE_SERVER_IP
   const port = import.meta.env.VITE_SERVER_PORT
 
-  const baseUrl = `http://${ipAddress}:${port}`; 
+  const baseUrl = `https://${ipAddress}:${port}`; 
   // console.log(baseUrl);
   
   try {
