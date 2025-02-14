@@ -23,8 +23,8 @@ jobs:
           echo "VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.CLIENT_STORAGEBUCKET }}" >> .env.production
           echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.CLIENT_MESSAGINGSENDERID }}" >> .env.production
           echo "VITE_FIREBASE_APP_ID=${{ secrets.CLIENT_APPID }}" >> .env.production
-          echo "VITE_SERVER_IP=${{ variables.SERVER_IP }}" >> .env.production
-          echo "VITE_SERVER_PORT=${{ variables.SERVER_PORT }}" >> .env.production
+          echo "VITE_SERVER_IP=${{ env.SERVER_IP }}" >> .env.production
+          echo "VITE_SERVER_PORT=${{ env.SERVER_PORT }}" >> .env.production
           npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
