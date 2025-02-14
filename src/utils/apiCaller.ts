@@ -6,7 +6,8 @@ export async function callApi(endpoint, data) {
   const port = import.meta.env.VITE_SERVER_PORT
 
   const baseUrl = `http://${ipAddress}:${port}`; 
-
+  console.log(baseUrl);
+  
   try {
     const response = await axios.post(`${baseUrl}${endpoint}`, data);
     console.log('API Response:', response.data);
