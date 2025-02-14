@@ -35,15 +35,16 @@
         />
         <div>
           <p v-if="aiResponse.answer != ''" class="ai-response-answer">{{ aiResponse.answer }}</p>
-          <a
-            v-if="aiResponse.reference"
-            :href="aiResponse.reference"
+          <div v-if="aiResponse.reference"></div>
+          <a v-for="(link, index) in aiResponse.reference"
+            
+            :href="link"
             target="_blank"
             class="ai-response-reference"
-            >Reference</a
+            >Reference{{ index+1 }}</a
           >
        </div>
-        <button @click="askQuestion" :disabled="isProcessing">Ask</button>
+        <button @click="submitQuestion" :disabled="isProcessing">Ask</button>
 
         <div v-if="aiResponse.answer != ''">
           <button 
@@ -52,10 +53,23 @@
           >Correct</button>
           <button
             v-if="isFeedbackVisible"
-            @click="saveFeedback(aiResponse.question, aiResponse.answer, false)"
+            @click="handleIncorrectClick"
           >Incorrect</button>
-        </div>
+
+          <!-- Added input for incorrect feedback -->
+          <div v-if="isIncorrectInputVisible">
+            <input 
+              type="text"
+              v-model="correctAnswer"
+              placeholder="Enter the correct answer..."
+            />
+            <button 
+              @click="saveFeedback(aiResponse.question, correctAnswer, true)"
+              :disabled="isProcessing"
+            >Save</button>
     </div>
+    </div>
+  </div>
     </div>
   </div>
 </template>
@@ -63,8 +77,9 @@
 <script lang="ts" setup>
 import { ref, watch, onMounted } from "vue";
 import { doc, getDoc, collection, addDoc, Timestamp } from "firebase/firestore";
-import { getFirestoreDb, getCurrentUserId } from "../firebase"; // 確保這些函數已正確實作
-import axios from 'axios';
+import { getFirestoreDb, getCurrentUserId } from "../firebase";
+import { callApi } from "@/utils/apiCaller";
+
 
 const db = getFirestoreDb();
 const userId = getCurrentUserId();
@@ -89,6 +104,11 @@ interface Chatbot {
   options: Record<string, Message>;
 }
 
+type AIResponse = {
+  answer: string;
+  question: string;
+  reference: string | null;
+}
 const chatbots = ref<Chatbot[]>([]);
 const selectedChatbotId = ref<string | null>(null);
 const messages = ref<Message[]>([]);
@@ -97,18 +117,14 @@ const steps: Record<string, Option> = {};
 const question = ref('');
 const isProcessing = ref(false);
 const isFeedbackVisible = ref(false);
+const isIncorrectInputVisible = ref(false);
+const correctAnswer = ref('');
 
 const aiResponse = ref<AIResponse>({
   answer: '',
   question: '',
   reference: null,
 });
-type AIResponse = {
-  answer: string;
-  question: string;
-  reference: string | null;
-}
-
 // 從 Firestore 載入 chatbots
 const loadChatbots = async () => {
   const docRef = doc(db, "ChatBots", docId);
@@ -134,13 +150,10 @@ const selectChatbot = (chatbotId: string) => {
 
   if (selectedChatbot) {
 
-    
     Object.values(selectedChatbot.options).forEach((option: any) => {
-      
       if (option) {
         steps[option.name] = option;
       }
-      
     });
 
     startChat(selectedChatbot.initialStep);
@@ -189,7 +202,7 @@ watch(() => messages.value.length, (newLen, oldLen) => {
   
 });
 
-const askQuestion = async () => {
+const submitQuestion = async () => {
   if (!selectedChatbotId.value || !question.value) return;
 
   isProcessing.value = true;
@@ -202,13 +215,12 @@ const askQuestion = async () => {
   };
 
   try {
-    const response = await axios.post('http://127.0.0.1:8000/asking', payload);
 
-    let res = JSON.parse(response.data)
+    let res = JSON.parse(await callApi("/asking", payload))
 
-    aiResponse.value.answer = res['answer']
-    aiResponse.value.reference = res['reference']
-    aiResponse.value.question = res['question']
+    aiResponse.value.answer = res.answer
+    aiResponse.value.reference = res.reference
+    aiResponse.value.question = res.question
 
   } catch (error) {
     console.error('Error asking AI question:', error);
@@ -216,17 +228,16 @@ const askQuestion = async () => {
 
   isProcessing.value = false;
 
-  question.value = '';
 };
+
+const handleIncorrectClick = () => {
+  isIncorrectInputVisible.value = true;
+}
 
 const saveFeedback = async (user_query, llm_response, is_correct) => {
   try {
-
-
     const feedbacksCollection = collection(db, `chatbot_interactions/${selectedChatbotId.value}/feedbacks`);
-    // console.log(user_query);
-    
-    await addDoc(feedbacksCollection, { // Use addDoc()
+    await addDoc(feedbacksCollection, { 
       user_query,
       llm_response,
       is_correct,
@@ -236,8 +247,7 @@ const saveFeedback = async (user_query, llm_response, is_correct) => {
       },
     });
     alert('Feedback saved successfully!')
-
-    isFeedbackVisible.value = false;
+    isIncorrectInputVisible.value = false;
   } catch (error) {
     alert('Error saving feedback')
   }

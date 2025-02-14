@@ -4,7 +4,7 @@
 
     <div class="wrapper">
       <nav>
-        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/Home">Home</RouterLink>
         <!-- <RouterLink to="/about">About</RouterLink> -->
         <RouterLink to="/Login">Login</RouterLink>
         <RouterLink to="/ChatBot">ChatBot</RouterLink>

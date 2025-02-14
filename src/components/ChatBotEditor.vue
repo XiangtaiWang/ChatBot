@@ -55,7 +55,9 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getFirestoreDb, getCurrentUserId } from "../firebase";
+import { callApi } from '@/utils/apiCaller';
 import axios from 'axios'; // Import axios for HTTP requests
+
 
 const db = getFirestoreDb();
 const userId = getCurrentUserId();
@@ -126,12 +128,19 @@ const rootUrl = ref("");
 // Method to send POST request
 const embedChatbot = async () => {
   try {
-    const response = await axios.post('http://127.0.0.1:8000/embedding', {
+    let payload = {
       uid: userId,
       rootUrl: rootUrl.value,
       chatbotId: chatbotId,
-    });
-    console.log(response.data);
+    }
+    let res = callApi("/embedding", payload)
+    // const response = await axios.post('http://127.0.0.1:8000/embedding', {
+    //   uid: userId,
+    //   rootUrl: rootUrl.value,
+    //   chatbotId: chatbotId,
+    // });
+
+    // console.log(response.data);
     // await axios.post('http://127.0.0.1:8000/hi')
     alert("Train successfully!");
   } catch (error) {
