@@ -23,7 +23,7 @@ jobs:
           echo "VITE_FIREBASE_APP_ID=${{ secrets.CLIENT_APPID }}" >> .env.production
           echo "VITE_SERVER_IP=${{ vars.SERVER_IP }}" >> .env.production
           echo "VITE_SERVER_PORT=${{ vars.SERVER_PORT }}" >> .env.production
-          cat .env.production
+
           npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
