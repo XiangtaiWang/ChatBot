@@ -1,3 +1,4 @@
+
 <template>
   <div class="chatbot">
     <button v-if="selectedChatbotId" @click="resetChatbot" class="chatbot-button">Chatbot List</button>
@@ -11,74 +12,16 @@
       </ul>
     </div>
 
-    <div v-else class="messages">
-      <div v-if="lastMessage" :class="['message', lastMessage.sender]">
-        <button @click="handleBackClick">Back</button>
-        <p>{{ lastMessage.text }}</p>
-        <div v-if="lastMessage.nextSteps" class="options">
-          <button
-            v-for="(option, optIndex) in lastMessage.nextSteps"
-            :key="optIndex"
-            @click="handleOptionClick(option.toString())"
-          >
-            {{ option }}
-          </button>
-        </div>
-      </div>
-
-      <div ref="aiAssistant" class="ai-assistant">
-      <h3>Ask AI Question</h3>
-        <input
-          v-model="question"
-          :disabled="isProcessing"
-          placeholder="Enter your question..."
-        />
-        <div>
-          <p v-if="aiResponse.answer != ''" class="ai-response-answer">{{ aiResponse.answer }}</p>
-          <div v-if="aiResponse.reference"></div>
-          <a v-for="(link, index) in aiResponse.reference"
-            
-            :href="link"
-            target="_blank"
-            class="ai-response-reference"
-            >Reference{{ index+1 }}</a
-          >
-       </div>
-        <button @click="submitQuestion" :disabled="isProcessing">Ask</button>
-
-        <div v-if="aiResponse.answer != ''">
-          <button 
-            v-if="isFeedbackVisible"
-            @click="saveFeedback(aiResponse.question, aiResponse.answer, true)"
-          >Correct</button>
-          <button
-            v-if="isFeedbackVisible"
-            @click="handleIncorrectClick"
-          >Incorrect</button>
-
-          <!-- Added input for incorrect feedback -->
-          <div v-if="isIncorrectInputVisible">
-            <input 
-              type="text"
-              v-model="correctAnswer"
-              placeholder="Enter the correct answer..."
-            />
-            <button 
-              @click="saveFeedback(aiResponse.question, correctAnswer, true)"
-              :disabled="isProcessing"
-            >Save</button>
-    </div>
-    </div>
-  </div>
-    </div>
+    <ChatBotContent v-else :chatbotId="selectedChatbotId" /> 
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, watch, onMounted } from "vue";
-import { doc, getDoc, collection, addDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { getFirestoreDb, getCurrentUserId } from "../firebase";
-import { callApi } from "@/utils/apiCaller";
+
+import ChatBotContent from "./ChatBotContent.vue";
 
 
 const db = getFirestoreDb();
@@ -104,28 +47,14 @@ interface Chatbot {
   options: Record<string, Message>;
 }
 
-type AIResponse = {
-  answer: string;
-  question: string;
-  reference: string | null;
-}
 const chatbots = ref<Chatbot[]>([]);
 const selectedChatbotId = ref<string | null>(null);
 const messages = ref<Message[]>([]);
 const lastMessage = ref<Message | null>(null);
 const steps: Record<string, Option> = {};
-const question = ref('');
-const isProcessing = ref(false);
-const isFeedbackVisible = ref(false);
-const isIncorrectInputVisible = ref(false);
-const correctAnswer = ref('');
 
-const aiResponse = ref<AIResponse>({
-  answer: '',
-  question: '',
-  reference: null,
-});
-// 從 Firestore 載入 chatbots
+
+
 const loadChatbots = async () => {
   const docRef = doc(db, "ChatBots", docId);
   const docSnap = await getDoc(docRef);
@@ -143,7 +72,6 @@ const loadChatbots = async () => {
   }
 };
 
-// 選擇 chatbot 並初始化步驟
 const selectChatbot = (chatbotId: string) => {
   selectedChatbotId.value = chatbotId;
   const selectedChatbot = chatbots.value.find((cb) => cb.id === chatbotId);
@@ -162,11 +90,6 @@ const selectChatbot = (chatbotId: string) => {
   }
 };
 
-const handleBackClick = () => {
-  messages.value.pop();
-}
-
-// 初始化聊天
 const startChat = (initialStep: string) => {
   const startStep = steps[initialStep];
   
@@ -179,15 +102,6 @@ const startChat = (initialStep: string) => {
   }
 };
 
-const handleOptionClick = (option: string) => {
-
-    const step = steps[option];
-    if (step) {
-    let message = { text: step.label, sender: "bot", nextSteps: step.nextSteps } as Message;
-
-      addMessage(message);
-    }
-};
 
 const addMessage = (message: Message) => {
   messages.value.push(message);
@@ -201,57 +115,6 @@ watch(() => messages.value.length, (newLen, oldLen) => {
   }
   
 });
-
-const submitQuestion = async () => {
-  if (!selectedChatbotId.value || !question.value) return;
-
-  isProcessing.value = true;
-  isFeedbackVisible.value = true
-
-  const payload = {
-    uid: userId,
-    chatbotId: selectedChatbotId.value,
-    question: question.value
-  };
-
-  try {
-
-    let res = JSON.parse(await callApi("/asking", payload))
-
-    aiResponse.value.answer = res.answer
-    aiResponse.value.reference = res.reference
-    aiResponse.value.question = res.question
-
-  } catch (error) {
-    console.error('Error asking AI question:', error);
-  }
-
-  isProcessing.value = false;
-
-};
-
-const handleIncorrectClick = () => {
-  isIncorrectInputVisible.value = true;
-}
-
-const saveFeedback = async (user_query, llm_response, is_correct) => {
-  try {
-    const feedbacksCollection = collection(db, `chatbot_interactions/${selectedChatbotId.value}/feedbacks`);
-    await addDoc(feedbacksCollection, { 
-      user_query,
-      llm_response,
-      is_correct,
-      timestamp: Timestamp.now(),
-      metadata: {
-        user_id: userId,
-      },
-    });
-    alert('Feedback saved successfully!')
-    isIncorrectInputVisible.value = false;
-  } catch (error) {
-    alert('Error saving feedback')
-  }
-};
 
 const resetChatbot = () => {
   selectedChatbotId.value = null;

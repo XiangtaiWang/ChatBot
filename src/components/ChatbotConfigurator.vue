@@ -6,6 +6,18 @@
     <button v-if="whatsappBusinessAccountId" @click="deleteAccount" class="delete-button">Delete</button>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
     <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+
+    <div class="help-section">
+      <h2>Setting up your Chatbot with WhatsApp </h2>
+      <p>Follow these steps to create and configure your WhatsApp Business Account:</p>
+      <ol>
+        <li><a href="https://business.whatsapp.com" target="_blank" rel="noopener noreferrer">Create a WhatsApp Business Account</a></li>
+        <li>Follow the instructions to set up your business profile and phone number.</li>
+        <li><a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer">Create a WhatsApp App</a></li>
+        <li>Configure your Webhook URL for receiving incoming messages. Insert "blablabla as webhook url" and "token as validation token". See <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks" target="_blank" rel="noopener noreferrer">Webhook documentation</a> for more details.</li>
+        <li>copy this code into your javascript or wordpress<ClipboardCopy :text= "iFrameHTMLCode" /></li>
+      </ol>
+    </div>
   </div>
 </template>
 
@@ -14,10 +26,13 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { getFirestoreDb, getCurrentUserId } from "../firebase";
-const db = getFirestoreDb();
+import ClipboardCopy from './ClipboardCopy.vue';
+const router = useRouter();
 
+
+const db = getFirestoreDb();
 const route = useRoute()
-const router = useRouter()
+
 const chatBotId = route.params.id
 const whatsappBusinessAccountId = ref('')
 const errorMessage = ref('')
@@ -117,6 +132,21 @@ const deleteAccount = async () => {
     console.error(error);
   }
 }
+const generateEmbedChatbotURL = (chatbotId) => {
+  const routeResolution = router.resolve({
+    name: 'EmbedChatbot',
+    params: { chatbotId: chatbotId }
+  });
+  return routeResolution.href; // routeResolution.href will contain the generated URL string
+};
+
+const urlForChatbot = generateEmbedChatbotURL(chatBotId);
+const baseUrl = import.meta.env.VITE_HOSTING_URL
+const iFrameUrlToUse = ref(`${baseUrl}${urlForChatbot}`)
+const iFrameHTMLCode = ref(`<iframe
+  src="${iFrameUrlToUse.value}"
+  width="400" height="600" frameborder="0"
+  style="border: none; display: block; margin: 0 auto;" ></iframe>`)
 
 </script>
 <style scoped>
@@ -140,6 +170,7 @@ const deleteAccount = async () => {
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ccc;
+  padding: 10px;
   border-radius: 5px;
 }
 

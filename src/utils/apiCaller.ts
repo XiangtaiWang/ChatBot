@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export async function callApi(endpoint, data) {
 
-  const ipAddress = import.meta.env.VITE_SERVER_IP
+  const domainName = import.meta.env.VITE_SERVER_DOMAIN_NAME
   const port = import.meta.env.VITE_SERVER_PORT
 
-  const baseUrl = `https://${ipAddress}:${port}`; 
+  const baseUrl = `https://${domainName}`; 
   // console.log(baseUrl);
   
   try {

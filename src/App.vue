@@ -3,7 +3,7 @@
     <!-- <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" /> -->
 
     <div class="wrapper">
-      <nav>
+      <nav v-if="!isEmbedRoute">
         <RouterLink to="/Home">Home</RouterLink>
         <!-- <RouterLink to="/about">About</RouterLink> -->
         <RouterLink to="/Login">Login</RouterLink>
@@ -17,15 +17,22 @@
   </body>
   
 </template>
-<script lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+<script setup lang="ts">
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { computed } from 'vue';
+const route = useRoute(); // Get the current route object
 
-export default{
-  name: "App",
-  components:{
 
-  }
-}
+// Create a computed property to check if the current route path starts with '/embed_chatbot'
+const isEmbedRoute= computed(() => {
+  return route.path.startsWith('/embed_chatbot');
+});
+// export default{
+//   name: "App",
+//   components:{
+
+//   }
+// }
 </script>
 
 <style scoped>

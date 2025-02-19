@@ -4,8 +4,11 @@
       <ul>
         <li v-for="(chatbot, index) in chatbots" :key="index">
           <span>{{ chatbot.name }}</span>
-          <button @click="editChatbot(chatbot.id)">Edit</button>
-          <button @click="deleteChatbot(index)">Delete</button>
+          <div>
+            <button @click="editChatbot(chatbot.id)">Edit</button>
+            <button @click="configureChatbot(chatbot.id)">Configure</button>
+            <button @click="deleteChatbot(index)">Delete</button>
+          </div>
         </li>
       </ul>
       <button @click="addChatbot">Add New Chatbot</button>
@@ -25,7 +28,6 @@
   
   const chatbots = ref<{ id: string; name: string; options: any[]; createdOn: string}[]>([]);
   
-  // Load all chatbots for the user
   const loadChatbots = async () => {
     const docSnap = await getDoc(chatbotsDocRef);
     if (docSnap.exists()) {
@@ -35,7 +37,6 @@
     }
   };
   
-  // Add a new chatbot
   const addChatbot = async () => {
     const docSnap = await getDoc(chatbotsDocRef);
     if(!docSnap.exists()){
@@ -48,15 +49,19 @@
     await updateDoc(chatbotsDocRef, { chatbots: chatbots.value });
   };
   
-  // Delete a chatbot
   const deleteChatbot = async (index: number) => {
     chatbots.value.splice(index, 1);
     await updateDoc(chatbotsDocRef, { chatbots: chatbots.value });
   };
   
-  // Navigate to the chatbot editor
   const editChatbot = (id: string) => {
     router.push({ name: "ChatbotEditor", params: { id } });
+  };
+
+  const configureChatbot = (id: string) => {
+    // Implement your configuration logic here.  For example, navigate to a 
+    // new route for chatbot configuration:
+    router.push({ name: "ChatbotConfigurator", params: { id } });
   };
   
   onMounted(loadChatbots);
