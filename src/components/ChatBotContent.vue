@@ -105,11 +105,9 @@ const addMessage = (message: Message) => {
   };
 
 watch(() => messages.value.length, (newLen) => {
-  if (newLen == 0) {
-    selectedChatbotId.value = null;
-  } else {
-    lastMessage.value = messages.value[messages.value.length - 1];
-  }
+
+  lastMessage.value = messages.value[messages.value.length - 1];
+  
 });
 
 const submitQuestion = async () => {
