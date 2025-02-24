@@ -129,20 +129,12 @@ const rootUrl = ref("");
 const embedChatbot = async () => {
   try {
     let payload = {
-      uid: userId,
       rootUrl: rootUrl.value,
       chatbotId: chatbotId,
     }
     let res = callApi("/embedding", payload)
-    // const response = await axios.post('http://127.0.0.1:8000/embedding', {
-    //   uid: userId,
-    //   rootUrl: rootUrl.value,
-    //   chatbotId: chatbotId,
-    // });
 
-    // console.log(response.data);
-    // await axios.post('http://127.0.0.1:8000/hi')
-    alert("Train successfully!");
+    alert("Train successfully! Please wait 5 minutes.");
   } catch (error) {
     console.error(error);
     alert("Failed to send embed request.");

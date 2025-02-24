@@ -24,7 +24,7 @@
         </div>
       </div>
       <button @click="submitQuestion" :disabled="isProcessing">Ask</button>
-      <div v-if="aiResponse.answer != ''">
+      <div v-if="aiResponse.answer != ''&& !isThisViewEmbeded">
         <button v-if="isFeedbackVisible" @click="saveFeedback(aiResponse.question, aiResponse.answer, true)">Correct</button>
         <button v-if="isFeedbackVisible" @click="handleIncorrectClick">Incorrect</button>
         <div v-if="isIncorrectInputVisible">
@@ -42,12 +42,14 @@ import { doc, getDocs, collection, addDoc, Timestamp, query, where, collectionGr
 import { getFirestoreDb, getCurrentUserId } from "../firebase";
 import { callApi } from "@/utils/apiCaller";
 import { useRoute } from 'vue-router';
+
 const route = useRoute();
 // const props = defineProps<{ chatbotId: string }>();
 const props = defineProps<{
   chatbotId?: string;
 }>();
 const chatbotIdFromRoute = route.params.chatbotId as string | undefined;
+
 const db = getFirestoreDb();
 const userId = getCurrentUserId();
 interface Option {
@@ -71,6 +73,7 @@ type AIResponse = {
 
 // const chatbots = ref<Chatbot[]>([]);
 const selectedChatbotId = ref<string | undefined>(props.chatbotId);
+const isThisViewEmbeded = ref<boolean>(false);
 const messages = ref<Message[]>([]);
 const lastMessage = ref<Message | null>(null);
 const steps: Record<string, Option> = {};
@@ -117,7 +120,7 @@ const submitQuestion = async () => {
   isFeedbackVisible.value = true;
 
   const payload = {
-    uid: userId,
+    // uid: userId,
     chatbotId: selectedChatbotId.value,
     question: question.value
 };
@@ -190,7 +193,7 @@ const loadChatbot = async (chatbotId: string) => {
   console.log(chatbot.name);
 
 } else {
-
+  console.log(chatbotId);
   console.log("No chatbot found with the given ID.");
 }
 
@@ -206,21 +209,21 @@ onMounted(async () => {
 // 1. Check for chatbotId prop first (takes precedence)
 if (props.chatbotId) {
   chatbotIdToLoad = props.chatbotId;
+  isThisViewEmbeded.value = false;
   console.log("Chatbot ID loaded from props:", chatbotIdToLoad);
 } else {
-  // const chatbotIdFromRoute = route.params.chatbotId as string | null;
-  // 2. If no prop, check URL parameters
-  // const urlParams = new URLSearchParams(window.location.search);
-  // const chatbotIdFromUrl = urlParams.get('chatbotId');
+
   if (chatbotIdFromRoute) {
     chatbotIdToLoad = chatbotIdFromRoute;
     console.log("Chatbot ID loaded from URL parameter:", chatbotIdToLoad);
+    isThisViewEmbeded.value = true;
   } else {
     console.error("chatbotId not found in props or URL parameters.");
   }
 }
 
 if (chatbotIdToLoad) {
+  selectedChatbotId.value = chatbotIdToLoad
   await loadChatbot(chatbotIdToLoad);
 }
 });
