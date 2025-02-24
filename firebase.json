@@ -8,10 +8,6 @@
     ],
     "rewrites": [
       {
-        "source": "/embed_chatbot/**",
-        "destination": "/embed_chatbot.html"
-      },
-      {
         "source": "**",              
         "destination": "/index.html" 
       }
