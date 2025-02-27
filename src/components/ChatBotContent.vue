@@ -170,8 +170,6 @@ const saveFeedback = async (user_query, llm_response, is_correct) => {
 };
 
 const loadChatbot = async (chatbotId: string) => {
-  console.log(chatbotId);
-
   const querySnapshot = await getDocs(collection(db, "ChatBots"));
   const matchingDocs = querySnapshot.docs.filter(doc => {
     const chatbots = doc.data().chatbots;
@@ -189,11 +187,8 @@ const loadChatbot = async (chatbotId: string) => {
           steps[option.name] = option;
         });
         startChat(chatbot.initialStep);
-
-  console.log(chatbot.name);
-
 } else {
-  console.log(chatbotId);
+  // console.log(chatbotId);
   console.log("No chatbot found with the given ID.");
 }
 
@@ -210,15 +205,15 @@ onMounted(async () => {
 if (props.chatbotId) {
   chatbotIdToLoad = props.chatbotId;
   isThisViewEmbeded.value = false;
-  console.log("Chatbot ID loaded from props:", chatbotIdToLoad);
+  // console.log("Chatbot ID loaded from props:", chatbotIdToLoad);
 } else {
 
   if (chatbotIdFromRoute) {
     chatbotIdToLoad = chatbotIdFromRoute;
-    console.log("Chatbot ID loaded from URL parameter:", chatbotIdToLoad);
+    // console.log("Chatbot ID loaded from URL parameter:", chatbotIdToLoad);
     isThisViewEmbeded.value = true;
   } else {
-    console.error("chatbotId not found in props or URL parameters.");
+    // console.error("chatbotId not found in props or URL parameters.");
   }
 }
 

@@ -10,7 +10,7 @@ export async function callApi(endpoint, data) {
   
   try {
     const response = await axios.post(`${baseUrl}${endpoint}`, data);
-    console.log('API Response:', response.data);
+    // console.log('API Response:', response.data);
     return response.data; 
   } catch (error) {
     console.error('API Error:', error);

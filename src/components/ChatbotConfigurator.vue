@@ -1,9 +1,12 @@
 <template>
   <div class="container">
     <button @click="goBack" class="back-button">Back</button>
-    <input v-model="whatsappBusinessAccountId" type="text" placeholder="WhatsApp Business Account ID" class="input-field">
-    <button @click="save" class="save-button">Save</button>
-    <button v-if="whatsappBusinessAccountId" @click="deleteAccount" class="delete-button">Delete</button>
+    <input v-model="whatsappBusinessAccountId" type="text" placeholder="WhatsApp Business Account ID" class="input-field" required>
+    <input v-model="whatsappApi" type="text" placeholder="WhatsApp API" class="input-field" required>
+    <input v-model="whatsappApiAuthToken" type="text" placeholder="WhatsApp API Auth Token" class="input-field" required>
+    
+    <button :disabled="!(whatsappBusinessAccountId && whatsappApi && whatsappApiAuthToken)" @click="save" class="save-button" :class="{ 'disabled-button': !(whatsappBusinessAccountId && whatsappApi && whatsappApiAuthToken) }">Save</button>
+    <button @click="deleteAccount" class="delete-button">Delete</button>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
     <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
 
@@ -14,8 +17,14 @@
         <li><a href="https://business.whatsapp.com" target="_blank" rel="noopener noreferrer">Create a WhatsApp Business Account</a></li>
         <li>Follow the instructions to set up your business profile and phone number.</li>
         <li><a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer">Create a WhatsApp App</a></li>
-        <li>Configure your Webhook URL for receiving incoming messages. Insert "blablabla as webhook url" and "token as validation token". See <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks" target="_blank" rel="noopener noreferrer">Webhook documentation</a> for more details.</li>
-        <li>copy this code into your javascript or wordpress<ClipboardCopy :text= "iFrameHTMLCode" /></li>
+        <li>Configure your Webhook URL for receiving incoming messages. Select WhatsApp Business Account.
+          <br>callback url: https://chatbot.sistemadeturno.com/webhook
+          <br>verify token: WhatsAppWebhookVerification_ZZZ
+          <br>See <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks" target="_blank" rel="noopener noreferrer">Webhook documentation</a> for more details.
+        
+        </li>
+        <li>copy this code into your javascript or wordpress<ClipboardCopy :text= "iFrameHTMLCode" />
+        In wordpress, you will need add custom HTML, then past the code into it.</li>
       </ol>
     </div>
   </div>
@@ -29,12 +38,13 @@ import { getFirestoreDb, getCurrentUserId } from "../firebase";
 import ClipboardCopy from './ClipboardCopy.vue';
 const router = useRouter();
 
-
 const db = getFirestoreDb();
 const route = useRoute()
 
 const chatBotId = route.params.id
 const whatsappBusinessAccountId = ref('')
+const whatsappApi = ref('')
+const whatsappApiAuthToken = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 
@@ -51,24 +61,20 @@ const fetchWhatsAppAccount = async () => {
     if (docSnap.exists()) {
       const chatbots = docSnap.data().chatbots || [];
       const chatbot = chatbots.find(bot => bot.id === chatBotId);
-      if (chatbot && chatbot.whatsappBusinessAccountId) {
-        whatsappBusinessAccountId.value = chatbot.whatsappBusinessAccountId;
+      if (chatbot) {
+        whatsappBusinessAccountId.value = chatbot.whatsappBusinessAccountId || '';
+        whatsappApi.value = chatbot.whatsappApiToken || '';
+        whatsappApiAuthToken.value = chatbot.whatsappAuthToken || '';
       }
     }
   } catch (error) {
-    console.error("Error fetching WhatsApp Business Account ID:", error);
+    console.error("Error fetching WhatsApp Account details:", error);
   }
 }
 
 onMounted(fetchWhatsAppAccount);
 
 const save = async () => {
-  if (!whatsappBusinessAccountId.value) {
-    errorMessage.value = 'Please enter a WhatsApp Business Account ID.'
-    successMessage.value = ''
-    return
-  }
-
   try {
     const userId = getCurrentUserId();
     const docRef = doc(db, 'ChatBots', userId);
@@ -76,26 +82,25 @@ const save = async () => {
 
     if (docSnap.exists()) {
     const chatbots = docSnap.data().chatbots || [];
-      const existingAccount = chatbots.find(bot => bot.id !== chatBotId && bot.whatsappBusinessAccountId === whatsappBusinessAccountId.value);
-      if (existingAccount) {
-        errorMessage.value = `This WhatsApp Business Account ID is already in use by another chatbot: ${existingAccount.name}.`;
-        successMessage.value = '';
-        return;
-  }
       const index = chatbots.findIndex(bot => bot.id === chatBotId);
 
       if (index !== -1) {
-        const updatedChatbot = { ...chatbots[index], whatsappBusinessAccountId: whatsappBusinessAccountId.value };
+        const updatedChatbot = {
+          ...chatbots[index],
+          whatsappBusinessAccountId: whatsappBusinessAccountId.value,
+          whatsappApi: whatsappApi.value,
+          whatsappApiAuthToken: whatsappApiAuthToken.value
+};
         const updatedChatbots = [...chatbots];
         updatedChatbots[index] = updatedChatbot;
         await updateDoc(docRef, { chatbots: updatedChatbots });
         errorMessage.value = ''
-        successMessage.value = 'WhatsApp Business Account ID saved successfully!'
+        successMessage.value = 'WhatsApp Account details saved successfully!'
       } else {
         errorMessage.value = 'Chatbot not found.';
-    successMessage.value = '';
-  }
-}
+        successMessage.value = '';
+      }
+    }
   } catch (error) {
     errorMessage.value = 'An error occurred while saving.'
     successMessage.value = ''
@@ -114,12 +119,14 @@ const deleteAccount = async () => {
       const index = chatbots.findIndex(bot => bot.id === chatBotId);
 
       if (index !== -1) {
-        const updatedChatbot = { ...chatbots[index], whatsappBusinessAccountId: '' };
+        const updatedChatbot = { ...chatbots[index], whatsappBusinessAccountId: '', whatsappApi: '', whatsappApiAuthToken: '' };
         const updatedChatbots = [...chatbots];
         updatedChatbots[index] = updatedChatbot;
         await updateDoc(docRef, { chatbots: updatedChatbots });
         whatsappBusinessAccountId.value = '';
-        successMessage.value = 'WhatsApp Business Account ID deleted successfully!';
+        whatsappApi.value = '';
+        whatsappApiAuthToken.value = '';
+        successMessage.value = 'WhatsApp Account details deleted successfully!';
       } else {
         errorMessage.value = 'Chatbot not found.';
         successMessage.value = '';
@@ -137,7 +144,7 @@ const generateEmbedChatbotURL = (chatbotId) => {
     name: 'EmbedChatbot',
     params: { chatbotId: chatbotId }
   });
-  return routeResolution.href; // routeResolution.href will contain the generated URL string
+  return routeResolution.href;
 };
 
 const urlForChatbot = generateEmbedChatbotURL(chatBotId);
@@ -182,6 +189,11 @@ const iFrameHTMLCode = ref(`<iframe
   border-radius: 5px;
   cursor: pointer;
   margin-bottom: 10px;
+}
+
+.save-button.disabled-button {
+    background-color: #cccccc; /* Gray color for disabled button */
+    cursor: default; /* Change cursor to default */
 }
 
 .delete-button {

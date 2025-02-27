@@ -44,7 +44,7 @@
     });
     }
     const now = new Date()
-    const newChatbot = { id: `chatbot_${Date.now()}`, name: "New Chatbot", options: [], createdOn: now.toDateString() };
+    const newChatbot = { id: `chatbot_${Date.now()}`, name: "New Chatbot", options: [], createdOn: now.toDateString(), whatsappApi: "", whatsappApiAuthToken:"", whatsappBusinessAccountId:"" };
     chatbots.value.push(newChatbot);
     await updateDoc(chatbotsDocRef, { chatbots: chatbots.value });
   };
